@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Special+Gothic+Condensed+One&family=Special+Gothic+Expanded+One&display=swap');
+@import url('"https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"')
+
+
+
+@import "tailwindcss/preflight"
+'@tailwind utilities'
+
+
+
+
+
+@font-face {
+  font-family: 'Geist';
+  src: url('/fonts/Geist-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Geist';
+  src: url('/fonts/Geist-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+/* Geist Mono font */
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('/fonts/Geist-Mono-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('/fonts/Geist-Mono-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+}
