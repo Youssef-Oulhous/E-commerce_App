@@ -9,7 +9,6 @@ import BasketPanel from './BasketPanel'
 
 
 type Product = {
-  _id: string;
   name: string;
   description: string;
   price: number;
@@ -17,9 +16,12 @@ type Product = {
   stock: number;
   brand: string;
   rating: number;
-  image?: string;
-    quantity:number;
+  image:string
+  _id:string;
+  quantity:number;
 };
+
+
 
 interface FeaturesProp {
   handleAddToCart : (product : Product) => void ;
@@ -28,13 +30,14 @@ interface FeaturesProp {
    isBasketOpen : boolean ;
    cartItem : Product[];
    handleRemoveQuantity:(id : string) => void ;
+   setCategoryProducts:(category : string) => void ;
 
 }
 
 
 
 
-export default function HomePage({handleAddToCart , count ,setBasketOpen,isBasketOpen ,cartItem,handleRemoveQuantity}:FeaturesProp){
+export default function HomePage({handleAddToCart , count ,setBasketOpen,isBasketOpen ,cartItem,handleRemoveQuantity,setCategoryProducts}:FeaturesProp){
 
    
 
@@ -48,7 +51,7 @@ export default function HomePage({handleAddToCart , count ,setBasketOpen,isBaske
                 
                 <ProductPage />
                 <Features handleAddToCart={handleAddToCart} />
-                <Categories />
+                <Categories setCategoryProducts={setCategoryProducts} />
                 <NewsLetter />
                 <Footer />
             </div>

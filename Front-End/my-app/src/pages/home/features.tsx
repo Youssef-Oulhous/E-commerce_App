@@ -3,9 +3,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 
 
-
 type Product = {
-  _id:string
   name: string;
   description: string;
   price: number;
@@ -13,9 +11,10 @@ type Product = {
   stock: number;
   brand: string;
   rating: number;
+  image:string
+  _id:string;
   quantity:number;
 };
-
 
 interface FeaturesProp {
   handleAddToCart : (product : Product) => void ;
@@ -37,7 +36,6 @@ export default function Features({handleAddToCart} : FeaturesProp) {
     axios
       .get<ProductsResponse>(`http://localhost:5500/api/products/`)
       .then((res) =>{
-        console.log(res.data)
          setProducts(res.data.products.slice(0,4));
 
 
@@ -59,7 +57,7 @@ export default function Features({handleAddToCart} : FeaturesProp) {
           <div className="flex flex-wrap justify-center items-center sm:flex-row gap-[30px]">
             {products.map((product) => {
               return (
-                <div className="">
+                <div key={product._id}>
                   <div className="w-[300px] sm:w-[350px] md:w-[350px] lg:w-[350px] xl:w-[350px] 2xl:w-[350px] border-2 rounded-3xl mt-[100px]">
                     <div>
                       <img
@@ -73,9 +71,9 @@ export default function Features({handleAddToCart} : FeaturesProp) {
                         {product.category}
                       </h2>
                       <h1 className="text-xl font-bold">
-                        <a href="#" className="hover:underline">
-                         <Link to={`/product/${product._id}`}>{product.name}</Link> 
-                        </a>
+                       
+                         <Link className="hover:underline" to={`/product/${product._id}`}>{product.name}</Link> 
+                        
                       </h1>
                       <p className="text-lg font-semibold sm:text-xl md:text-xl lg:text-xl xl:text-xl 2xl:text-xl ">
                         ${product.price}

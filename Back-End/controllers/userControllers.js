@@ -10,7 +10,7 @@ const JWT_TOKEN = process.env.JWT_TOKEN ;
 
 const AddProduct = async(req , res) => {
     try{
-        const {name, description, price, category,features, stock, image, brand} = req.body ;
+        const {name, description, price,rating, category,features, stock, image, brand} = req.body ;
         const newProduct = await Product({
             name,
             description,
@@ -20,7 +20,7 @@ const AddProduct = async(req , res) => {
             stock,
             image,
             brand,
-            rating:0,
+            rating,
 
         });
 
@@ -160,20 +160,57 @@ const getAllProducts = async(req,res) => {
     }
 }
 
-const getProductByCategory = async(req,res) =>{
 
+const getBySearch = async (req,res) => {
     try{
-        const {category} = req.query ; 
-        const filterCatego = await Product.find({category});
 
-        if (filterCatego.length === 0) return res.status(404).json({message:'No products found in this category'});
+        const { query } = req.query;
+        
+        const results = await Product.find({
+        $or: [
+            { name: { $regex: query, $options: 'i' } },
+            { brand: { $regex: query, $options: 'i' } }
+        ]
+        });
 
-        res.status(200).json(filterCatego);
-
-    } catch(err){
-        res.status(500).json({message:err});
+        if(!results) return res.status(404).json({message:'no products found'});
+        res.status(200).json(results);
+        
+    } catch (err) {
+         res.status(500).json({message:err});
     }
+}
+
+
+const getProductByCategory = async (req, res) => {
+  try {
+    const { category } = req.query;
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 6;
+    const skip = (page - 1) * limit;
+
+    const query = category ? { category } : {};
+
+    const total = await Product.countDocuments(query);
+    const products = await Product.find(query).skip(skip).limit(limit);
+
+    if (products.length === 0) {
+      return res.status(404).json({ message: 'No products found in this category.' });
+    }
+
+    res.status(200).json({
+      success: true,
+      products,
+      currentPage: page,
+      totalPages: Math.ceil(total / limit),
+      totalProducts: total,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
+
 
 const getProductByBrand =async(req,res)=>{
 
@@ -191,20 +228,63 @@ const getProductByBrand =async(req,res)=>{
     }
 };
 
-const getProductByRating = async (req,res) => {      //GET /products?order=asc
-    try{
+const getProductByRating = async (req, res) => {
+  try {
+    const { order } = req.query;
+    const sortOrder = order === 'asc' ? 1 : -1;
 
-        const {order} = req.query ;
-        const sortOrder = order === 'asc' ? 1 : -1;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 6;
+    const skip = (page - 1) * limit;
 
-        const products = await Product.find().sort({rating : sortOrder});
+    const total = await Product.countDocuments();
+    const products = await Product.find()
+      .sort({ rating: sortOrder })
+      .skip(skip)
+      .limit(limit);
 
-        res.status(200).json(products);
+    res.status(200).json({
+      success: true,
+      products,
+      currentPage: page,
+      totalPages: Math.ceil(total / limit),
+      totalProducts: total,
+    });
 
-    } catch (err){
-        res.status(500).json({message:err});
-    }
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
+
+
+const getProductsByPrice = async (req, res) => {
+  try {
+    const { order } = req.query;
+    const sortOrder = order === 'asc' ? 1 : -1;
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 6;
+    const skip = (page - 1) * limit;
+
+    const total = await Product.countDocuments();
+    const products = await Product.find()
+      .sort({ price: sortOrder })
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({
+      success: true,
+      products,
+      currentPage: page,
+      totalPages: Math.ceil(total / limit),
+      totalProducts: total,
+    });
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 
 const getProductById = async(req,res) => {
     try{
@@ -241,10 +321,12 @@ module.exports = {
     getProductByCategory,
     getProductByBrand,
     getProductById,
+    getBySearch,
     getProductByRating,
     deleteProduct,
     addUser,
     userLogin,
     getAllUser,
-    deleteUser
+    deleteUser,
+    getProductsByPrice
 }

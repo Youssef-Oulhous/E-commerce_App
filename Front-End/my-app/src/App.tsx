@@ -18,7 +18,6 @@ import { useState } from 'react';
 
 
 type Product = {
-  _id: string;
   name: string;
   description: string;
   price: number;
@@ -26,73 +25,37 @@ type Product = {
   stock: number;
   brand: string;
   rating: number;
-  image?: string;
+  image:string
+  _id:string;
   quantity:number;
 };
 
-
 function App() {
- 
+    const [categories,setCategories] =useState<string[]>([]); 
+    const [ isBasketOpen , setBasketOpen ] = useState<boolean>(false);
+    const [CategoryProducts,setCategoryProducts] = useState<string>('');
 
-   const [count , setCount] = useState<number>(()=>{
+    const [count , setCount] = useState<number>(()=>{
     const stored = localStorage.getItem('Countcart');
     return stored ? Number(stored) : 0 ;
   }) ;
-  
+
   const [cartItem , setCartItem] = useState<Product[]>(()=>{
     const stored = localStorage.getItem('CartItem') ;
     return stored ? JSON.parse(stored)  : [] ;
   });
 
 
-  const updateCartItems = (cartItem: Product[], product: Product):Product[] => {
-    
-    const find = cartItem.find(item => item._id === product._id);
 
-    if(find){
 
-     return cartItem.map((item)=>{
-
-        const match = product._id ;
-        if(item._id === match){
-          return {
-            ...item ,
-            quantity : item.quantity + 1
-          };
-        }
-        return item ;
-      });
-    } else{
-      return[...cartItem , {...product ,quantity : 1}]
-    }
-  }
-
-  const updateCount = ( cartItem: Product[] , product : Product):Product[] => {
-      const find = cartItem.find((item)=> item._id === product._id);
-
-      if(find){
-
-        return cartItem.map((item)=>{
-
-          const match = item._id ;
-
-          if(match === product._id){
-            return {
-              ...item ,
-              quantity : item.quantity + 1
-            };
-          }
-          return item ;
-        });
-        
-      } else{
-        return [...cartItem , { ...product }]
-      }
-  }
+  
 
 const handleAddToCart = (product: Product) => {
   setCartItem((prevCart) => {
     const found = prevCart.find((item) => item._id === product._id);
+
+console.log("count test");
+
 
     let updatedCart: Product[];
 
@@ -115,7 +78,6 @@ const handleAddToCart = (product: Product) => {
 
 
 
-
 const handleRemoveQuantity = (id: string) => {
   const updatedCart = cartItem.filter((prev)=> prev._id !== id ) ;
   
@@ -129,19 +91,18 @@ const handleRemoveQuantity = (id: string) => {
 };
 
 
-   const [ isBasketOpen , setBasketOpen ] = useState<boolean>(false);
-
+  
 
   return(
     <>
     
     <Router>
       <Routes>
-        <Route path='/' element={<HomePage  handleAddToCart={handleAddToCart} count={count}  setBasketOpen={setBasketOpen} isBasketOpen={isBasketOpen} cartItem={cartItem} handleRemoveQuantity={handleRemoveQuantity}/>} />
-        <Route path='/Products' element={<AllProduct handleAddToCart={handleAddToCart} count={count} setBasketOpen={setBasketOpen} isBasketOpen={isBasketOpen} cartItem={cartItem} handleRemoveQuantity={handleRemoveQuantity} />} />
+        <Route path='/' element={<HomePage  handleAddToCart={handleAddToCart} count={count}  setBasketOpen={setBasketOpen} isBasketOpen={isBasketOpen} cartItem={cartItem} handleRemoveQuantity={handleRemoveQuantity} setCategoryProducts={setCategoryProducts}/>} />
+        <Route path='/Products' element={<AllProduct setCategories={setCategories} categories={categories} handleAddToCart={handleAddToCart} count={count} setBasketOpen={setBasketOpen} isBasketOpen={isBasketOpen} cartItem={cartItem} handleRemoveQuantity={handleRemoveQuantity} />} />
         <Route path='/Product/:id' element={<SingleProduct handleAddToCart={handleAddToCart} count={count} setBasketOpen={setBasketOpen} isBasketOpen={isBasketOpen} />} />
-        <Route path='/Categories' element={<Categories count={count}  setBasketOpen={setBasketOpen} isBasketOpen={isBasketOpen} />} />
-        <Route path='/Category' element={<SingleCategoryPage count={count} handleAddToCart={handleAddToCart} setBasketOpen={setBasketOpen} isBasketOpen={isBasketOpen} />}  />
+        <Route path='/Categories' element={<Categories setCategoryProducts={setCategoryProducts} setCategories={setCategories} categories={categories} count={count} setBasketOpen={setBasketOpen} isBasketOpen={isBasketOpen}/>} />
+        <Route path='/Category' element={<SingleCategoryPage count={count} handleAddToCart={handleAddToCart} setBasketOpen={setBasketOpen} isBasketOpen={isBasketOpen} CategoryProducts={CategoryProducts} />}  />
         <Route path='/Cart' element={<CartPage  cartItem={cartItem} handleRemoveQuantity={handleRemoveQuantity} count={count} setBasketOpen={setBasketOpen} isBasketOpen={isBasketOpen}/>} />
         <Route path='/Basket' element={<BasketPanel  cartItem={cartItem} handleRemoveQuantity={handleRemoveQuantity} count={count} setBasketOpen={setBasketOpen} isBasketOpen={isBasketOpen} />} />
         <Route path='/login' element={<Login />} />
@@ -149,16 +110,9 @@ const handleRemoveQuantity = (id: string) => {
         <Route path='/checkoutPage' element={<CheckoutPage />} />
       </Routes> 
     </Router>
+
     </>
   )
 }
 
 export default App 
-
-
-
-// setCartItem((prev) => {
-    //   const updatedCart = [...prev, product];
-    //   localStorage.setItem('CartItem', JSON.stringify(updatedCart));
-    //   return updatedCart ;
-    // });

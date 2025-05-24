@@ -11,6 +11,8 @@ interface CountProps {
 
   }
 
+  console.log("hero fetch");
+
 
 export default function HeroTab({count , setBasketOpen ,isBasketOpen} : CountProps ) {
   type nav = { name: string; path: string };

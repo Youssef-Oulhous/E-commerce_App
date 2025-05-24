@@ -32,6 +32,7 @@ export default function SingleProduct({handleAddToCart , count , setBasketOpen ,
   const [ActiveTab, setActiveTab] = useState<Tab>("description");
   const {id} = useParams<{id : string}>()
   const [Product , setProduct] = useState<Product | null>(null);
+  console.log(Product)
   console.log(id)
   
       useEffect(()=>{
@@ -42,6 +43,7 @@ export default function SingleProduct({handleAddToCart , count , setBasketOpen ,
       },[id])
 
       if(!Product) return <p>loading...</p> 
+
 
 
   return (
@@ -99,9 +101,10 @@ export default function SingleProduct({handleAddToCart , count , setBasketOpen ,
 
           <div className="mt-[100px] w-1/2">
             <h1 className="text-5xl font-bold"></h1>
-            <div className="flex ">
-              <StarRating rating={4.5} />{" "}
-              <p className="text-gray-500">{Product.rating}  (124 reviews)</p>
+            <div className="flex items-center gap-1 ">
+              <StarRating rating={Product.rating} />{" "}
+              <p className="text-gray-500">(124 reviews)</p>
+              
             </div>
             <h3 className="text-3xl font-semibold mt-[30px]">${Product.price}</h3>
             <p className="text-md text-gray-400 font-extralight ">
