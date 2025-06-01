@@ -50,7 +50,7 @@ export default function Features({handleAddToCart} : FeaturesProp) {
           <h1 className="text-2xl sm:text-4xl md:text-4xl lg:text-4xl xl:text-4xl 2xl:text-4xl font-bold text-center  ">
             Featured Products
           </h1>
-          <p className="text-md sm:text-xl md:text-xl xl:text-xl 2xl:text-xl text-center text-gray-500 ">
+          <p className="text-md sm:text-xl md:text-xl xl:text-xl 2xl:text-xl text-center text-gray-500 font-Author ">
             Discover our most popular items handpicked for you
           </p>
 

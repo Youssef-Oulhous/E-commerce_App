@@ -1,7 +1,14 @@
 import { FaRegTrashAlt } from "react-icons/fa";
 import HeroTab from "./home/hero";
-import { useState ,useEffect} from "react";
+import { useState ,useEffect, useContext} from "react";
 import axios , {AxiosError} from "axios";
+import { jwtDecode } from "jwt-decode";
+// import Checkout from "./checkoutPage";
+import { UserContext } from "../UserContext";
+import { useNavigate } from "react-router-dom";
+import { User } from "lucide-react";
+
+
 
 
 
@@ -17,12 +24,19 @@ type Product = {
   quantity:number;
 };
 
+interface UserInfo {
+  userId: string;
+  username: string;
+}
+
 interface CartStr {
     cartItem : Product[] ;
     handleRemoveQuantity : (id : string) => void ; 
     count ?: number ;
     setBasketOpen : (boolean:boolean) => void ;
     isBasketOpen:boolean ;
+    getUserInfos:()=>void;
+    
     
 }
 
@@ -30,11 +44,24 @@ interface CheckoutResponse {
   message: string;
 }
 
+interface DecodedToken {
+userId: string;
+  username: string;
+  iat?: number;
+  exp?: number;
+}
 
-export default function CartPage ({cartItem ,handleRemoveQuantity , count , setBasketOpen ,isBasketOpen}:CartStr) {
+
+
+export default function CartPage ({cartItem ,handleRemoveQuantity , count , setBasketOpen ,isBasketOpen ,getUserInfos }:CartStr) {
 
     const [ totalPrice , setTotalPrice] = useState<number>(0);
     const [shipping , setShipping] =useState<string>('');
+    const [ProductTitle , setProductTitle] = useState<string[]>([]);
+    const {setUser} = useContext(UserContext);
+
+    const navigate = useNavigate();
+    
 
     useEffect(() => {
     const total = cartItem.reduce((acc, product) => acc + product.price, 0);
@@ -49,6 +76,7 @@ export default function CartPage ({cartItem ,handleRemoveQuantity , count , setB
         setShipping('$10')
         setTotalPrice(total+10)
     }
+    console.log(ProductTitle);
 }, [cartItem]);
 
 useEffect(() => {
@@ -65,6 +93,29 @@ useEffect(() => {
     fetchCheckout();
   }, []);
 
+  
+
+  const AddOrder = async() =>{
+
+        const token = localStorage.getItem('token'); 
+        
+        if(token){
+            const decode:DecodedToken = jwtDecode<UserInfo>(token);
+            const user = { userId: decode.userId, username: decode.username };
+            navigate('/checkoutPage',{state: user })
+           
+            
+        } else {
+            console.log('there s no token !')
+        }
+       
+  }
+
+
+
+  
+
+
     return(
 
         <>
@@ -76,7 +127,7 @@ useEffect(() => {
                 <div>
 
                     {cartItem.map((product)=>(
-                        <div className="flex gap-[20px] mt-[70px]">
+                        <div className="flex gap-[20px] mt-[70px]" key={product._id}>
                         <div><img src="Product-Image.jpg" alt="" className="w-[150px] h-[150px] rounded-xl" /></div>
                         <div className="flex justify-between gap-[300px] ">
                             <div className="flex flex-col gap-[40px]">
@@ -119,7 +170,7 @@ useEffect(() => {
                         </div>
                         
                         <div className="flex justify-center">
-                            <button className="bg-zinc-900 text-white w-[250px] p-3 rounded-xl mt-5 cursor-pointer" >Procecss to Checkout</button>
+                            <button className="bg-zinc-900 text-white w-[250px] p-3 rounded-xl mt-5 cursor-pointer"  onClick={()=> AddOrder()}>Procecss to Checkout</button>
                         </div>
                         
                     </div>

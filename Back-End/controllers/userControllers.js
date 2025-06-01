@@ -315,6 +315,9 @@ const deleteProduct = async(req,res) => {
 }
 
 
+
+
+
 module.exports = {
     AddProduct,
     getAllProducts,

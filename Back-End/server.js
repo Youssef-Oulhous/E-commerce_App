@@ -6,6 +6,7 @@ require('dotenv').config();
 const Port = process.env.PORT || 5500 ;
 
 
+
 const multer = require('multer');
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -22,7 +23,8 @@ const upload = multer({storage})
 
 
 const ProductRouter = require('./routes/Products');
-const UserRoute = require('./routes/Users')
+const UserRoute = require('./routes/Users');
+const Orders = require('./routes/Order');
 
 
 app.use(cors());
@@ -31,6 +33,8 @@ connectDB();
 
 app.use('/api/products',ProductRouter);
 app.use('/api/user',UserRoute);
+app.use('/api/orders',Orders);
+
 
 
 app.post('/api/uploads',upload.single('file') ,(req,res)=>{

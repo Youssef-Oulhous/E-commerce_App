@@ -11,7 +11,8 @@ module.exports = {
      fontFamily: {
       geist: ['Geist', 'sans-serif'],
       geistMono: ['Geist Mono', 'monospace'],
-      GeneralSans:['GeneralSans','sans-serif']
+      GeneralSans:['GeneralSans','sans-serif'],
+      Author:['Author','sans-serif']
     },
     screens: {
       'sm': '480px',
@@ -20,6 +21,9 @@ module.exports = {
       'xl': '1280px',
       '2xl': '1536px',
     },
+     backgroundImage: {
+        'dashboard-gradient': 'linear-gradient(135deg, #0f1114, #1e1f24)',
+      },
     },
   },
   plugins: [],
