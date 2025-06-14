@@ -6,7 +6,11 @@
     "moduleResolution": "node",               // Helps resolve modules
     "strict": true,                            // Enables strict mode for better type safety
     "esModuleInterop": true,                  // Ensures compatibility with ES6 modules
-    "skipLibCheck": true                      // Skips library type checking for faster builds
+    "skipLibCheck": true,                      // Skips library type checking for faster builds
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
   "include": ["src/**/*"],                     // Include all TypeScript files in the 'src' folder
   "exclude": ["node_modules"]                  // Exclude node_modules folder
