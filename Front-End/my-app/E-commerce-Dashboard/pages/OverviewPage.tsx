@@ -3,6 +3,9 @@ import { ArrowDown, ArrowUp, DollarSign, ShoppingBag, X, Users, LineChart } from
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../UI/Cart"
 import { Badge } from "../UI/Badge"
 import { Progress } from "../UI/Progress"
+import axios from "axios"
+import { LucideIcon } from "lucide-react";
+import { useState , useEffect} from "react"
 
 interface OverviewPageProps {
   stats?: Array<{
@@ -29,127 +32,190 @@ interface OverviewPageProps {
     date: string
   }>
 }
+interface TotalSales{
+    totalOrders: number;
+    complitedOrder:number;
+    cancelledOrders: number;
+    pendingOrders: number;
+    totalSales: number;
+}
+
+interface Stat {
+  title: string
+  value: string
+  change: string
+  trend: "up" | "down"
+  icon: React.ComponentType<any>
+  description: string
+}
+
+type DashboardData = {
+  stats: Stat[];
+  topProducts: any[]; // You can strongly type this later
+  recentOrders: any[];
+};
+
+type TopProduct = {
+  name: string;
+  totalSold: number;
+  totalRevenue: string; // formatted as $xx.xx
+  image: string;
+  trend: string; // e.g. "+5.4%"
+};
+
+type RecentOrder = {
+  id: number; // Assuming `orderNumber` is a number
+  customer: string;
+  email: string;
+  amount: string; // formatted like "$120.00"
+  status: string;
+  date: string; // e.g. "6/13/2025"
+};
+
+type RecentOrdersResponse = {
+  orders: any[];
+  currentPage: number;
+  totalPages: number;
+};
 
 export default function OverviewPage({ stats, topProducts, recentOrders }: OverviewPageProps) {
   // Default data - replace with your API data
-  const defaultStats = [
-    {
-      title: "Total Sales",
-      value: "$45,231.89",
-      change: "+20.1%",
-      trend: "up" as const,
-      icon: DollarSign,
-      description: "from last month",
-    },
-    {
-      title: "Total Orders",
-      value: "2,350",
-      change: "+15.3%",
-      trend: "up" as const,
-      icon: ShoppingBag,
-      description: "from last month",
-    },
-    {
-      title: "Cancelled Orders",
-      value: "89",
-      change: "-5.2%",
-      trend: "down" as const,
-      icon: X,
-      description: "from last month",
-    },
-    {
-      title: "Active Customers",
-      value: "1,429",
-      change: "+12.5%",
-      trend: "up" as const,
-      icon: Users,
-      description: "from last month",
-    },
-  ]
+  const [StatsData, setStatsData] = useState<Stat[]>([]);
+  const [TopProducts, setTopProducts] = useState<TopProduct[]>([]);
+  const [RecentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
 
-  const defaultTopProducts = [
-    {
-      name: "Wireless Headphones",
-      sales: 1234,
-      revenue: "$24,680",
-      image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=40&h=40&fit=crop&crop=center",
-      trend: "+12%",
-    },
-    {
-      name: "Smart Watch",
-      sales: 987,
-      revenue: "$19,740",
-      image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=40&h=40&fit=crop&crop=center",
-      trend: "+8%",
-    },
-    {
-      name: "Laptop Stand",
-      sales: 756,
-      revenue: "$15,120",
-      image: "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=40&h=40&fit=crop&crop=center",
-      trend: "+15%",
-    },
-    {
-      name: "USB-C Cable",
-      sales: 654,
-      revenue: "$6,540",
-      image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=40&h=40&fit=crop&crop=center",
-      trend: "+5%",
-    },
-    {
-      name: "Phone Case",
-      sales: 543,
-      revenue: "$5,430",
-      image: "https://images.unsplash.com/photo-1601593346740-925612772716?w=40&h=40&fit=crop&crop=center",
-      trend: "+3%",
-    },
-  ]
+  const fetchData = async ():Promise<DashboardData> => {
+    try {
+      const response = await axios.get<TotalSales>("http://localhost:5500/api/orders/dashboard-stats");
+      const data = response.data;
+      return {
+        stats: [
+          {
+            title: "Total Sales",
+            value: `$${data.totalSales.toFixed(2)}`,
+            change: "+20.1%",
+            trend: "up" as const,
+            icon: DollarSign,
+            description: "from last month",
+          },
+          {
+            title: "Total Orders",
+            value: data.totalOrders.toString(),
+            change: "+15.3%",
+            trend: "up" as const,
+            icon: ShoppingBag,
+            description: "from last month",
+          },
+          {
+            title: "Cancelled Orders",
+            value: data.cancelledOrders.toString(),
+            change: "-5.2%",
+            trend: "down" as const,
+            icon: X,
+            description: "from last month",
+          },
+          {
+            title: "Active Customers",
+            value: (data.totalOrders - data.cancelledOrders).toString(),
+            change: "+12.5%",
+            trend: "up" as const,
+            icon: Users,
+            description: "from last month",
+          },
+        ],
+        topProducts: [], // Fetch or define your top products
+        recentOrders: [], 
+      };
+    } catch (error) {
+      console.error("Error fetching overview data:", error);
+      return {
+        stats: [],
+        topProducts: [],
+        recentOrders: [],
+      };
+    }
+  };
 
-  const defaultRecentOrders = [
-    {
-      id: "#3210",
-      customer: "John Doe",
-      email: "john@example.com",
-      amount: "$250.00",
-      status: "completed",
-      date: "2024-01-15",
-    },
-    {
-      id: "#3209",
-      customer: "Jane Smith",
-      email: "jane@example.com",
-      amount: "$150.00",
-      status: "processing",
-      date: "2024-01-15",
-    },
-    {
-      id: "#3208",
-      customer: "Bob Johnson",
-      email: "bob@example.com",
-      amount: "$350.00",
-      status: "shipped",
-      date: "2024-01-14",
-    },
-    {
-      id: "#3207",
-      customer: "Alice Brown",
-      email: "alice@example.com",
-      amount: "$75.00",
-      status: "cancelled",
-      date: "2024-01-14",
-    },
-  ]
+  useEffect(() => {
+  const loadData = async () => {
+    try {
+      const data: DashboardData = await fetchData();
+      setStatsData(data.stats);
+    } catch (err) {
+      console.error("Failed to fetch dashboard stats", err);
+    }
+  };
 
-  const statsData = stats || defaultStats
-  const topProductsData = topProducts || defaultTopProducts
-  const recentOrdersData = recentOrders || defaultRecentOrders
+  loadData();
+}, []);
+
+
+
+
+const fetchTopProducts = async (): Promise<TopProduct[]>  => { // this function fetches top products from the API
+  try {
+    const response = await axios.get("http://localhost:5500/api/orders/top-products");
+    return response.data.map((product: any) => ({
+      name: product.name,
+      totalSold: product.totalSold,
+      totalRevenue: `$${product.totalRevenue.toFixed(2)}`,
+      image: product.image || "https://via.placeholder.com/40",
+      trend: `+${product.trendPercentage}%`,
+    }));
+  } catch (error) {
+    console.error("Error fetching top products:", error);
+    return[]
+   
+  }
+};
+
+
+useEffect(() => {
+  const loadTopProducts = async () => {
+    const products = await fetchTopProducts();
+    setTopProducts(products);
+  };
+
+  loadTopProducts();
+}, []);
+
+
+const fetchRecentOrders = async (): Promise<RecentOrder[]> => {
+  try {
+    const response = await axios.get<RecentOrdersResponse>("http://localhost:5500/api/orders/recent");
+
+    const orders = response.data.orders;
+
+    return orders.map((order) => ({
+      id: order.orderNumber,
+      customer: order.user.name,
+      email: order.user.email,
+      amount: `$${order.totalAmount.toFixed(2)}`,
+      status: order.status,
+      date: new Date(order.createdAt).toLocaleDateString(),
+    }));
+  } catch (error) {
+    console.error("Error fetching recent orders:", error);
+    return [];
+  }
+};
+
+ 
+useEffect(() => {
+  const loadRecentOrders = async () => {
+    const orders = await fetchRecentOrders();
+    setRecentOrders(orders);
+  };
+
+  loadRecentOrders();
+}, []);
 
   return (
     <div className="space-y-4 md:space-y-6">
       {/* Stats Cards */}
       <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        {statsData.map((stat, index) => (
-          <Card key={index}>
+        {StatsData.map((stat) => (
+          <Card key={stat.title} className="flex flex-col justify-between">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
               <stat.icon className="h-4 w-4 text-gray-500" />
@@ -196,7 +262,7 @@ export default function OverviewPage({ stats, topProducts, recentOrders }: Overv
           </CardHeader>
           <CardContent>
             <div className="space-y-3 md:space-y-4">
-              {topProductsData.map((product, index) => (
+              {TopProducts.map((product, index) => (
                 <div key={index} className="flex items-center space-x-3 md:space-x-4">
                   <img
                     src={product.image || "/placeholder.svg"}
@@ -205,10 +271,10 @@ export default function OverviewPage({ stats, topProducts, recentOrders }: Overv
                   />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{product.name}</p>
-                    <p className="text-xs text-gray-500">{product.sales} sales</p>
+                    <p className="text-xs text-gray-500">{product.totalSold} sales</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-medium">{product.revenue}</p>
+                    <p className="text-sm font-medium">{product.totalRevenue}</p>
                     <p className="text-xs text-green-500">{product.trend}</p>
                   </div>
                 </div>
@@ -227,10 +293,10 @@ export default function OverviewPage({ stats, topProducts, recentOrders }: Overv
           </CardHeader>
           <CardContent>
             <div className="space-y-3 md:space-y-4">
-              {recentOrdersData.slice(0, 4).map((order, index) => (
+              {RecentOrders.slice(0, 5).map((order, index) => (
                 <div key={index} className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium">{order.id}</p>
+                    <p className="text-sm font-medium">#{order.id}</p>
                     <p className="text-xs text-gray-500">{order.customer}</p>
                   </div>
                   <div className="text-right">

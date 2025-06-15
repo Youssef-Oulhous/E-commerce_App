@@ -1,6 +1,5 @@
 
-
-import { useState } from "react"
+import { useState ,useEffect } from "react"
 import { Home, ShoppingCart, Package, Users, BarChart3 } from "lucide-react"
 import DashboardLayout from "./DashboardLayout"
 import OverviewPage from "./pages/OverviewPage"
@@ -8,13 +7,70 @@ import OrdersPage from "./pages/OrdersPage"
 import ProductsPage from "./pages/ProductsPage"
 import CustomersPage from "./pages/CustomersPage"
 import AnalyticsPage from "./pages/AnalyticsPage"
+import axios from "axios"
+
+type RecentOrder = {
+  id: number; // Assuming `orderNumber` is a number
+  customer: string;
+  email: string;
+  amount: string; // formatted like "$120.00"
+  status: string;
+  date: string; // e.g. "6/13/2025"
+
+};
+
+type RecentOrdersResponse = {
+  currentPage: number;
+  totalPages: number;
+  totalOrders: number;
+  orders: any[]; // replace 'any' with your order type if possible
+};
+
 
 export default function MainDashboard() {
   const [activeTab, setActiveTab] = useState("overview")
 
+
+  const fetchRecentOrders = async (): Promise<{ totalOrders: number; orders: RecentOrder[] }> => {
+  try {
+    const response = await axios.get<RecentOrdersResponse>("http://localhost:5500/api/orders/recent");
+    const data = response.data;
+
+    if (!data || !Array.isArray(data.orders)) {
+      console.error("Unexpected response format:", data);
+      return { totalOrders: 0, orders: [] };
+    }
+
+    const orders = data.orders.map((order: any) => ({
+      id: order.orderNumber.toString(),
+      customer: order.user.name,
+      email: order.user.email,
+      amount: `$${order.totalAmount.toFixed(2)}`,
+      status: order.status,
+      date: new Date(order.createdAt).toLocaleDateString(),
+    }));
+
+    return { totalOrders: data.totalOrders, orders };
+  } catch (error) {
+    console.error("Error fetching recent orders:", error);
+    return { totalOrders: 0, orders: [] };
+  }
+};
+
+const [totalOrders, setTotalOrders] = useState(0); // if you want to keep totalOrders in state
+
+useEffect(() => {
+  const loadRecentOrders = async () => {
+    const { totalOrders, orders } = await fetchRecentOrders();
+    console.log("Total orders:", totalOrders);
+    setTotalOrders(totalOrders); // if you keep totalOrders in state
+  };
+  loadRecentOrders();
+}, []);
+
   const sidebarItems = [
     { id: "overview", label: "Overview", icon: Home },
-    { id: "orders", label: "Orders", icon: ShoppingCart, badge: "12" },
+    { id: "orders", label: "Orders", icon: ShoppingCart, badge: totalOrders > 0 ? totalOrders.toString() : '0' },
     { id: "products", label: "Products", icon: Package },
     { id: "customers", label: "Customers", icon: Users },
     { id: "analytics", label: "Analytics", icon: BarChart3 },

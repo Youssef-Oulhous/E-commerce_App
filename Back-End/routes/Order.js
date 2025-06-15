@@ -6,7 +6,8 @@ const {
         updateOrderStatus,
         GetOrderById,
         TopSalesProduct,
-        revenueByCategory
+        revenueByCategory,
+        getRecentOrdersWithPagination
 } = require('../controllers/OrderController');
 const authentication =require('../middleware/authentication')
 
@@ -17,13 +18,14 @@ const router = express.Router();
 
 router.post('/', authentication , CreateOrder )
 router.get('/',getAllOrders);
-router.get('/Dashboard/stats',getDashboardStates);
-router.get('/Dashboard/stats/topProducts',TopSalesProduct);
-router.get('/Dashboard/stats/CategotyRevenu',revenueByCategory);
+router.get('/dashboard-stats',getDashboardStates);
+router.get('/top-products',TopSalesProduct);
+router.get('/revenue-by-category',revenueByCategory);
+router.get('/recent', getRecentOrdersWithPagination);
 
 router.get('/:id',GetOrderById);
 
-router.put('/:id',updateOrderStatus);
+router.put('/:id/status',updateOrderStatus);
 
 
 

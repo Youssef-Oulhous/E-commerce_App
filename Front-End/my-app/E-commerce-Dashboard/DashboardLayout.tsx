@@ -118,7 +118,7 @@ export default function DashboardLayout({ children, activeTab, onTabChange, side
                   <span className="font-medium text-sm md:text-base">{item.label}</span>
                 </div>
                 {item.badge && (
-                  <Badge variant="secondary" className="text-xs">
+                  <Badge variant="secondary" className="text-md bg-red-500 text-white">
                     {item.badge}
                   </Badge>
                 )}

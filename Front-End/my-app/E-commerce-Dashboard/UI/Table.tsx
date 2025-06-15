@@ -43,11 +43,14 @@ export const TableHead: React.FC<TableProps> = ({ children, className = '' }) =>
   </th>
 )
 
-export const TableCell: React.FC<TableProps> = ({ children, className = '' }) => (
-  <td className={`p-4 align-middle [&:has([role=checkbox])]:pr-0 ${className}`}>
+export const TableCell: React.FC<React.TdHTMLAttributes<HTMLTableCellElement>> = ({ children, className = '', ...props }) => (
+  <td
+    className={`p-4 align-middle [&:has([role=checkbox])]:pr-0 ${className}`}
+    {...props} // Spread the rest of the props, which will include `colSpan`
+  >
     {children}
   </td>
-)
+);
 
 export const TableCaption: React.FC<TableProps> = ({ children, className = '' }) => (
   <caption className={`mt-4 text-sm text-gray-500 ${className}`}>

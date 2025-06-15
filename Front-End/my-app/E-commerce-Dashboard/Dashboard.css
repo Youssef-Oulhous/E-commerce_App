@@ -1,0 +1,69 @@
+/* Dashboard.css */
+
+/* Active link styles */
+.active-link {
+  color: #0f172a;
+  background-color: #f1f5f9;
+  font-weight: 500;
+}
+
+/* Custom scrollbar for the main content */
+.overflow-y-auto {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f8fafc;
+}
+
+.overflow-y-auto::-webkit-scrollbar {
+  width: 8px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: #f8fafc;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 20px;
+}
+
+/* Smooth transitions for hover effects */
+a, button {
+  transition: all 0.2s ease;
+}
+
+/* Dashboard card hover effect */
+.card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Responsive font sizes */
+@media (max-width: 640px) {
+  .text-xl {
+    font-size: 1.1rem;
+  }
+  
+  .text-lg {
+    font-size: 1rem;
+  }
+}
+
+/* Dashboard page transitions */
+.page-transition {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+} 

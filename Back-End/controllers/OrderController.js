@@ -153,59 +153,84 @@ const GetOrderById = async (req, res) => {
 
 const TopSalesProduct = async (req, res) => {
   try {
-    const topProducts = await Order.aggregate([
-      { $unwind: "$products" },
+    const now = new Date();
+    const lastWeek = new Date(now);
+    lastWeek.setDate(now.getDate() - 7);
 
-      // Join with the products collection using productId
+    const prevWeek = new Date(lastWeek);
+    prevWeek.setDate(prevWeek.getDate() - 7);
+
+    // Helper: Get sales for a time range
+    const getSalesData = async (start, end) => {
+      return await Order.aggregate([
+        { $match: { createdAt: { $gte: start, $lt: end }, status: 'completed' } },
+        { $unwind: "$products" },
+        {
+          $group: {
+            _id: "$products.productId",
+            totalSold: { $sum: "$products.quantity" }
+          }
+        }
+      ]);
+    };
+
+    const currentSales = await getSalesData(lastWeek, now);
+    const previousSales = await getSalesData(prevWeek, lastWeek);
+
+    const salesMap = {};
+    previousSales.forEach(p => {
+      salesMap[p._id.toString()] = p.totalSold;
+    });
+
+    const topProducts = await Order.aggregate([
+      { $match: { createdAt: { $gte: lastWeek }, status: 'completed' } },
+      { $unwind: "$products" },
       {
         $lookup: {
-          from: "products", // <-- name of the actual MongoDB collection (not model)
+          from: "products",
           localField: "products.productId",
           foreignField: "_id",
           as: "productDetails",
         },
       },
       { $unwind: "$productDetails" },
-
-      // Group by product ID
       {
         $group: {
           _id: "$productDetails._id",
           name: { $first: "$productDetails.name" },
           price: { $first: "$productDetails.price" },
           category: { $first: "$productDetails.category" },
-          image: { $first: "$productDetails.image" }, // optional
+          image: { $first: "$productDetails.image" },
           totalSold: { $sum: "$products.quantity" },
           soldCount: { $sum: 1 },
           totalRevenue: {
             $sum: {
-              $multiply: ["$products.quantity", "$productDetails.price"],
-            },
-          },
-        },
+              $multiply: ["$products.quantity", "$productDetails.price"]
+            }
+          }
+        }
       },
-
-      // Sort and limit top 5
       { $sort: { totalSold: -1 } },
-      { $limit: 5 },
-
-      // Format output
-      {
-        $project: {
-          _id: 0,
-          productId: "$_id",
-          name: 1,
-          price: 1,
-          category: 1,
-          image: 1,
-          totalSold: 1,
-          soldCount: 1,
-          totalRevenue: 1,
-        },
-      },
+      { $limit: 5 }
     ]);
 
-    res.status(200).json(topProducts);
+    // Add trend percentage
+    const productsWithTrend = topProducts.map(product => {
+      const prev = salesMap[product._id.toString()] || 0;
+      const curr = product.totalSold;
+      let trendPercentage = 0;
+
+      if (prev === 0 && curr > 0) trendPercentage = 100;
+      else if (prev > 0) trendPercentage = ((curr - prev) / prev) * 100;
+
+      return {
+        ...product,
+        productId: product._id,
+        trend: `${trendPercentage >= 0 ? '+' : ''}${trendPercentage.toFixed(2)}%`
+      };
+    });
+
+    res.status(200).json(productsWithTrend);
   } catch (err) {
     res.status(500).json({
       error: "Failed to fetch top-selling products",
@@ -213,6 +238,7 @@ const TopSalesProduct = async (req, res) => {
     });
   }
 };
+
 
 const revenueByCategory = async (req, res) => {
   try {
@@ -259,6 +285,44 @@ const revenueByCategory = async (req, res) => {
   }
 };
 
+
+const getRecentOrdersWithPagination = async (req, res) => {
+  try {
+    // Pagination inputs from query string, e.g. ?page=1
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10;
+    const skip = (page - 1) * limit;
+
+    // Count total orders
+    const totalOrders = await Order.countDocuments();
+
+    // Get recent orders with sorting and pagination
+    const orders = await Order.find()
+      .sort({ createdAt: -1, _id: 1 }) // newest first
+      .skip(skip)
+      .limit(limit)
+      .populate('user', 'name email')
+      .populate('products.productId', 'name price image');
+
+    // Calculate total pages
+    const totalPages = Math.ceil(totalOrders / limit);
+
+    res.status(200).json({
+      currentPage: page,
+      totalPages,
+      totalOrders,
+      orders,
+    });
+  } catch (err) {
+    res.status(500).json({
+      error: 'Failed to fetch recent orders',
+      details: err.message,
+    });
+  }
+};
+
+
+
 const DeleteOrder = async (req, res) => {
   try {
     const orders = await Order.find()
@@ -281,4 +345,5 @@ module.exports = {
   GetOrderById,
   TopSalesProduct,
   revenueByCategory,
+  getRecentOrdersWithPagination
 };
