@@ -42,6 +42,17 @@ const upload = multer({
   },
 }).single("image");
 
+// Helper function to determine product status based on stock
+const getStatusFromStock = (stock) => {
+  if (stock === 0) {
+    return "out_of_stock";
+  } else if (stock < 20) {
+    return "low_stock";
+  } else {
+    return "active";
+  }
+};
+
 // Create a new product with image upload
 const createProduct = async (req, res) => {
   upload(req, res, async function (err) {
@@ -116,6 +127,9 @@ const createProduct = async (req, res) => {
         return res.status(400).json({ message: "Invalid stock value" });
       }
 
+      // Determine product status based on stock level
+      const status = getStatusFromStock(parsedStock);
+
       const product = new Product({
         name,
         description,
@@ -125,13 +139,15 @@ const createProduct = async (req, res) => {
         stock: parsedStock,
         brand,
         image: imagePath,
+        status, // Set status based on stock
       });
 
       await product.save();
       console.log("Product created successfully:", {
         id: product._id,
         name: product.name,
-        category: product.category
+        category: product.category,
+        status: product.status
       });
       
       res.status(201).json({ 
@@ -144,7 +160,8 @@ const createProduct = async (req, res) => {
           category: product.category,
           stock: product.stock,
           brand: product.brand,
-          image: product.image
+          image: product.image,
+          status: product.status
         }
       });
     } catch (error) {
@@ -208,9 +225,17 @@ const updateProduct = async (req, res) => {
           features: features ? JSON.parse(features) : undefined,
           price: price ? parseFloat(price) : undefined,
           category,
-          stock: stock ? parseInt(stock) : undefined,
           brand,
         };
+
+        // Only update stock and status if stock is provided
+        if (stock !== undefined) {
+          const parsedStock = parseInt(stock);
+          updateData.stock = parsedStock;
+          
+          // Automatically update status based on new stock level
+          updateData.status = getStatusFromStock(parsedStock);
+        }
 
         if (imagePath) {
           updateData.image = imagePath;
@@ -298,11 +323,104 @@ const getProductStats = async (req, res) => {
   }
 };
 
+// Update product statuses based on stock levels
+const updateProductStatuses = async (req, res) => {
+  try {
+    // Find all products
+    const products = await Product.find();
+    
+    let updated = 0;
+    let unchanged = 0;
+    
+    // Process each product
+    for (const product of products) {
+      let newStatus;
+      
+      // Determine status based on stock level
+      if (product.stock === 0) {
+        newStatus = "out_of_stock";
+      } else if (product.stock < 20) {
+        newStatus = "low_stock";
+      } else {
+        newStatus = "active";
+      }
+      
+      // Update product if status changed
+      if (product.status !== newStatus) {
+        product.status = newStatus;
+        await product.save();
+        updated++;
+      } else {
+        unchanged++;
+      }
+    }
+    
+    res.status(200).json({
+      message: "Product statuses updated successfully",
+      summary: {
+        total: products.length,
+        updated,
+        unchanged
+      }
+    });
+  } catch (error) {
+    console.error("Error updating product statuses:", error);
+    res.status(500).json({ 
+      message: "Error updating product statuses", 
+      error: error.message 
+    });
+  }
+};
+
+// Manual update for a single product's status
+const updateProductStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+    
+    // Determine status based on stock level
+    let newStatus;
+    if (product.stock === 0) {
+      newStatus = "out_of_stock";
+    } else if (product.stock < 20) {
+      newStatus = "low_stock";
+    } else {
+      newStatus = "active";
+    }
+    
+    // Update product status
+    product.status = newStatus;
+    await product.save();
+    
+    res.status(200).json({
+      message: "Product status updated successfully",
+      product: {
+        id: product._id,
+        name: product.name,
+        stock: product.stock,
+        status: product.status
+      }
+    });
+  } catch (error) {
+    console.error("Error updating product status:", error);
+    res.status(500).json({ 
+      message: "Error updating product status", 
+      error: error.message 
+    });
+  }
+};
+
 module.exports = {
   createProduct,
   getAllProducts,
   getProductById,
   updateProduct,
   deleteProduct,
-  getProductStats
+  getProductStats,
+  updateProductStatuses,
+  updateProductStatus
 }; 

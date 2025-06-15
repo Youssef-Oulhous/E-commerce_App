@@ -117,6 +117,8 @@ export default function ProductsPage({
 
   const productsData = products || defaultProducts
   const statsData = productStats || defaultStats
+  
+  
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (onSearch) {

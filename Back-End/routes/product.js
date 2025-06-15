@@ -6,7 +6,9 @@ const {
   getProductById,
   updateProduct,
   deleteProduct,
-  getProductStats
+  getProductStats,
+  updateProductStatuses,
+  updateProductStatus
 } = require("../controllers/productController");
 const authentication = require("../middleware/authentication");
 
@@ -14,6 +16,8 @@ const authentication = require("../middleware/authentication");
 router.post("/", authentication, createProduct);
 router.put("/:id", authentication, updateProduct);
 router.delete("/:id", authentication, deleteProduct);
+router.post("/update-statuses", authentication, updateProductStatuses);
+router.post("/:id/update-status", authentication, updateProductStatus);
 
 // Public routes
 router.get("/", getAllProducts);
